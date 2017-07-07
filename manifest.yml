@@ -1,0 +1,11 @@
+applications:
+- path: .
+  memory: 512M
+  instances: 1
+  domain: eu-gb.mybluemix.net
+  name: Epidemic Trend Analyzer
+  host: Epidemic-Trend-Ananlyser
+  disk_quota: 1024M
+  services:
+  - Epidemic Trend Ananlyser-personality_insights
+  - availability-monitoring-auto
