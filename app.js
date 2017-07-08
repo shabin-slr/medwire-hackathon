@@ -28,16 +28,27 @@ require('./config/i18n')(app);
 // Bootstrap application settings
 require('./config/express')(app);
 
+const fbpuller = require('./firebasepuller');
+
 // Create the service wrapper
 var personalityInsights = watson.personality_insights({
   version: 'v2',
-  username: '<username>',
-  password: '<password>'
+  username: '42f87171-b016-4db3-9c53-be7689bf9bd8',
+  password: 'TNQFUZhg4yNx'
 });
 
-app.get('/', function(req, res) {
-  res.render('index', { ct: req._csrfToken });
+app.use(express.static(__dirname + '/public'))
+
+app.get('/hospital', function(req, res) {
+  res.sendFile(__dirname+'/public/views/hospital.html', { ct: req._csrfToken });
 });
+
+app.get('/doh', function(req, res) {
+  res.sendFile(__dirname+'/public/views/doh.html', { ct: req._csrfToken });
+});
+
+app.get('/:country/disease-report', fbpuller.getCountrynReport);
+app.get('/:country/:region/disease-report', fbpuller.getRegionReport);
 
 app.post('/api/profile', function(req, res, next) {
   var parameters = extend(req.body, { acceptLanguage : i18n.lng() });
@@ -48,6 +59,12 @@ app.post('/api/profile', function(req, res, next) {
     else
       return res.json(profile);
   });
+});
+
+app.get('/get-fb-data', fbpuller.getFBData);
+
+app.get('/', function(req, res) {
+  res.render(__dirname+'/public/views/index', { ct: req._csrfToken });
 });
 
 // error-handler settings

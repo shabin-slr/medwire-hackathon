@@ -10,6 +10,7 @@
     "express": "^4.13.3",
     "express-rate-limit": "^2.0.2",
     "express-secure-only": "^0.2.1",
+    "firebase-admin": "^5.0.0",
     "helmet": "^0.13.0",
     "i18next": "^1.10.2",
     "morgan": "^1.6.1",

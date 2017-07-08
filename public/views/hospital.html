@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html ng-app="hospital">
+	<head>
+		<title>Hospital</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+		<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+		<meta http-equiv="Pragma" content="no-cache"/>
+		<meta http-equiv="Expires" content="0"/>
+		<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+		<link href="/css/hospital-style.css" rel="stylesheet"/>
+		<link href="/css/ngToast-animations.min.css" rel="stylesheet"/>
+		<link href="/css/ngToast.min.css" rel="stylesheet"/>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.4.14/angular.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.4.14/angular-animate.min.js"></script>
+		<script type="text/javascript" src="/scripts/ngToast.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.4.14/angular-sanitize.min.js"></script>
+    <script type="text/javascript" src="/scripts/hospital.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/4.1.3/firebase.js"></script>
+    <script>
+		  var config = {
+		    apiKey: "AIzaSyD2fZQKEeqfSt-g7R2wqiiAmamjFoxCegQ",
+		    authDomain: "hackathon-7th-july.firebaseapp.com",
+		    databaseURL: "https://hackathon-7th-july.firebaseio.com",
+		    projectId: "hackathon-7th-july",
+		    storageBucket: "hackathon-7th-july.appspot.com",
+		    messagingSenderId: "24639211491"
+		  };
+		  firebase.initializeApp(config);
+		</script>
+	</head>
+	<body ng-controller="HospitalController as ctrl">
+		<toast></toast>
+		<div class="topnav" id="myTopnav">
+		  <a ng-if="!ctrl.loggedIn">Login</a>
+		  <a ng-if="ctrl.loggedIn" ng-click="ctrl.logout()">Log Out</a>
+		  <a ng-if="ctrl.loggedIn" href="">{{ctrl.hospital.name + ',' + ctrl.hospital.region}}</a>
+		  <a href="" style="float: left;">Cloud Network for Hospitals</a>
+		</div>
+
+		<div ng-if="ctrl.stage == 'login'" style="text-align: center;">
+    	<div class="wrapper">
+		    <form class="form-signin">       
+		      <h2 class="form-signin-heading">Hospital login</h2>
+		      <div style="margin-top: 10px">
+			      <select class="form-control" ng-options="hospital as (hospital.name+ ', '+hospital.region) for hospital in ctrl.hospitals track by hospital.id" ng-model="ctrl.hospital" style="width:auto;margin: auto">
+			      	<option value="">- Hospital Name -</option>
+		    		</select>
+	    		</div>
+	    		<div style="margin-top: 10px">
+		      	<input type="password" class="form-control" name="password" placeholder="Password" required="" ng-model="ctrl.password" style="width:auto;margin: auto"/>
+		      </div>
+		      <div style="margin-top: 10px">
+		      	<button class="btn btn-lg btn-primary btn-block" type="submit" ng-click="ctrl.login()" style="width:auto;margin: auto">Login</button>
+		      </div>
+		    </form>
+		  </div>
+    </div>
+
+		<div ng-if="ctrl.loggedIn" style="margin-top: 20px">
+
+			<div class="container">
+				<div class="row">
+
+					<div class="col-md-9">
+						<div class="panel panel-default">
+							<div class="panel-heading">Register Diagnostics</div>
+					  	<div class="panel-body">
+					  		<form>
+					  			<div class="container">
+					  				<div>
+					  					<input type="text" class="form-control" style="width: auto" placeholder="Patient Name" ng-model="ctrl.patient.name"/>
+					  				</div>
+					  				
+					  				<div style="margin-top: 10px">
+					  					<textarea class="form-control" style="width: auto" placeholder="Symptoms" ng-model="ctrl.patient.symptoms"></textarea>
+					  				</div>
+					  				
+					  				<div style="margin-top: 10px"> 
+					  					<label for="travelled">Has patient travelled abroad recently?
+					  						<input id="travelled" type="checkbox" style="width: auto" ng-model="ctrl.patient.isForeigner" ng-change="ctrl.showCountries = ctrl.patient.isForeigner"/>
+					  					</label>
+					  				</div>
+
+					  				<div ng-if="ctrl.showCountries" style="margin-top: 10px">
+					  					<div>
+					  						<label> Which Country</label>
+					  						<select class="form-control" style="width: auto" ng-options="country as country.name for country in ctrl.countries" ng-model="ctrl.patient.country"></select>
+					  						<div ng-if="ctrl.patient.country">
+					  							<label>Which Region</label>
+					  							<select class="form-control" style="width: auto" ng-options="region as region for region in ctrl.patient.country.regions" ng-model="ctrl.patient.region" ng-change="ctrl.searchForEpidemics()"></select>
+					  						</div>
+					  					</div>
+					  				</div>
+
+					  				<div style="margin-top: 10px">
+					  					<textarea class="form-control" style="width: auto" ng-model="ctrl.patient.diagnosis" placeholder="Diagnosis"></textarea>
+					  				</div>
+
+					  				<button class="btn btn-primary" style="margin-top: 10px" value="Submit" ng-click="ctrl.saveDiagnosis()">Submit</button>
+
+					  			</div>
+					  		</form>
+					  	</div>
+						</div>
+					</div>
+
+					<div class="col-md-3">
+						<div class="panel panel-default">
+							<div class="panel-heading">Regional Notifications</div>
+					  	<div class="panel-body">
+					  		<div ng-if="ctrl.knownEpidemics.length">
+					  			<div style="text-align: center;"><b>Epidemic alerts</b></div>
+					  			<div ng-repeat="disease in ctrl.knownEpidemics" > <a ng-click="ctrl.showManagement(disease)">{{disease}}</a></div>	
+					  		</div>
+					  		<div ng-if="!ctrl.knownEpidemics.length" style="text-align: center;">None</div>
+					  	</div>
+					  </div>
+					</div>
+
+				</div>
+			</div>
+		
+		</div>
+
+    <div ng-if="ctrl.stage == 'loggedIn'" style="text-align: center;">
+    </div>
+    <div ng-if="ctrl.stage == 'getPatientInfo'" style="text-align: center;">
+    	
+    	
+    	</div>
+
+    	<div ng-if="ctrl.stage == 'registerEpidemic'">
+    		<h3>Register epidemic</h3>
+    		
+    		<div>
+    			<label>
+    				<b>Name</b>
+    			</label>
+    			<input type="text"  placeholder="Epidemic Name" ng-model="ctrl.epidemic.name"/>
+    		</div>
+
+    		<div>
+    			<label>
+    				<b>Symptoms</b>
+    			</label>
+    			<textarea type="text"  placeholder="Symptoms" ng-model="ctrl.epidemic.symptoms"></textarea>
+    		</div>
+
+    		<div>
+    			<label>
+    				<b>Quarantine Required</b>
+    			</label>
+    			<input type="checkbox" ng-model="ctrl.epidemic.quarantineRequired"/> 
+    		</div>
+
+    		<input type="submit" value="Submit" ng-click="ctrl.registerEpidemic()">
+
+    	</div>
+
+    </div>
+
+	</body>
+</html>
