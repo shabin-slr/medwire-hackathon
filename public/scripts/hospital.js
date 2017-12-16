@@ -103,7 +103,11 @@ angular.module("hospital", ["ngAnimate","ngToast","ngSanitize"])
 					content: "Known epidemics in region travelled by patient  : " + diseasesInRegion.join(", "),
 					className : "danger"
 				});
+				$timeout(function(){
+						$scope.$apply();
+				},50)
 		  }
+
 		});
 
 	}
